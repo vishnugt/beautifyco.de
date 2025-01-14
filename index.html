@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter</title>
+    <style>
+        .container {
+            display: flex;
+            height: calc(100vh - 50px); /* Subtract the button section height */
+            gap: 10px;
+        }
+
+        .line-numbers {
+            background-color: #f4f4f4;
+            color: #999;
+            padding: 10px;
+            text-align: right;
+            user-select: none;
+            overflow-y: auto;
+            border-right: 1px solid #ddd;
+            white-space: pre;
+            height: 100%;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+
+        textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            outline: none;
+            font-family: monospace;
+            padding: 10px;
+            margin: 0;
+            background-color: #fff;
+            overflow-y: auto;
+            resize: none;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 5px 15px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #e7e7e7;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ddd;
+            color: #000;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <button onclick="formatJson()">Format (Cmd + Enter)</button>
+        <button onclick="minifyJson()">Minify</button>
+    </div>
+
+    <div class="container">
+        <!-- Input Section -->
+        <div class="line-numbers" id="inputLineNumbers"></div>
+        <textarea id="inputJson" placeholder="Paste your JSON here..."></textarea>
+
+        <!-- Output Section -->
+        <div class="line-numbers" id="outputLineNumbers"></div>
+        <textarea id="outputJson" placeholder="Formatted or Minified JSON will appear here..." readonly></textarea>
+    </div>
+
+    <script>
+        function updateLineNumbers(target) {
+            const lineNumbers = target === 'input'
+                ? document.getElementById('inputLineNumbers')
+                : document.getElementById('outputLineNumbers');
+            const textArea = target === 'input'
+                ? document.getElementById('inputJson')
+                : document.getElementById('outputJson');
+
+            const lines = textArea.value.split('\n').length;
+            lineNumbers.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
+        }
+
+        function formatJson() {
+            const input = document.getElementById('inputJson').value;
+            const output = document.getElementById('outputJson');
+
+            try {
+                const jsonObject = JSON.parse(input);
+                const prettyJson = JSON.stringify(jsonObject, null, 4);
+                output.value = prettyJson;
+                updateLineNumbers('output'); // Update line numbers for output
+            } catch (error) {
+                output.value = "Invalid JSON: " + error.message;
+                updateLineNumbers('output'); // Adjust line numbers in error case
+            }
+        }
+
+        function minifyJson() {
+            const input = document.getElementById('inputJson').value;
+            const output = document.getElementById('outputJson');
+
+            try {
+                const jsonObject = JSON.parse(input);
+                const minifiedJson = JSON.stringify(jsonObject);
+                output.value = minifiedJson;
+                updateLineNumbers('output'); // Update line numbers for output
+            } catch (error) {
+                output.value = "Invalid JSON: " + error.message;
+                updateLineNumbers('output'); // Adjust line numbers in error case
+            }
+        }
+
+        function syncScroll(target) {
+            const lineNumbers = target === 'input'
+                ? document.getElementById('inputLineNumbers')
+                : document.getElementById('outputLineNumbers');
+            const textArea = target === 'input'
+                ? document.getElementById('inputJson')
+                : document.getElementById('outputJson');
+
+            textArea.addEventListener('scroll', () => {
+                lineNumbers.scrollTop = textArea.scrollTop; // Sync scroll
+            });
+        }
+
+        function attachListeners() {
+            const inputArea = document.getElementById('inputJson');
+            const outputArea = document.getElementById('outputJson');
+
+            inputArea.addEventListener('input', () => updateLineNumbers('input'));
+            outputArea.addEventListener('input', () => updateLineNumbers('output'));
+
+            syncScroll('input');
+            syncScroll('output');
+        }
+
+        document.addEventListener('keydown', (event) => {
+            console.log(`Key pressed: ${event.key}`);  // Log the key for debugging
+            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                console.log('Beautify shortcut detected');
+                event.preventDefault();
+                formatJson();  // Replace with your beautify function
+            }
+        });
+
+
+        // Initialize on page load
+        updateLineNumbers('input');
+        updateLineNumbers('output');
+        attachListeners();
+    </script>
+</body>
+</html>
