@@ -2,11 +2,13 @@
 
 import JsonFormatter from "./formatters/JsonFormatter.vue";
 import Base64Decoder from "./formatters/Base64Decoder.vue";
+import Base64Encoder from "./formatters/Base64Encoder.vue";
 
 const app = {
   components: {
     JsonFormatter,
-    Base64Decoder
+    Base64Decoder,
+    Base64Encoder
   },
   data() {
     return {
@@ -17,6 +19,10 @@ const app = {
         id: "Base64Decoder",
         name: "Base 64 Decoder"
       },
+        {
+          id: "Base64Encoder",
+          name: "Base 64 Encoder"
+        },
         {
           id: "JsonFormatter",
           name: "JSON Formatter"
