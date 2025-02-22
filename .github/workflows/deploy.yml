@@ -1,0 +1,40 @@
+name: Manual Vite Vue Build & Deploy
+
+on:
+  workflow_dispatch: # Runs only when manually triggered
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the project
+        run: npm run build
+
+      - name: Deploy to a new branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git checkout --orphan deploy
+          git rm -rf .
+          
+          mv dist/* .
+          rm -r dist
+          rm -rf node_modules
+          
+          git add .
+          git commit -m "Deploy build output"
+          git push --force origin deploy
