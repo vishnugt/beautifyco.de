@@ -47,7 +47,7 @@ const app = {
     window.removeEventListener("keydown", this.handleShortcut);
   },
   watch: {
-    watchFocus(value) {
+    isFocused(value) {
       if (value) {
         this.$refs.searchInput.focus();
       } else {
@@ -81,6 +81,7 @@ export default app;
 <template>
   <div class="search-container">
     <input ref="searchInput" v-model="searchQuery" @focus="isFocused = true"
+           @blur="isFocused = false"
            placeholder="Press Ctrl + Space to start" class="search-box"
            @keydown.enter="processFirstResult"/>
     <ul v-if="isFocused && filteredScripts.length" class="results-list">
@@ -118,6 +119,7 @@ export default app;
 
 /* Style the results list */
 .results-list {
+  position: absolute;
   margin-top: 10px;
   list-style: none;
   padding: 10px;
