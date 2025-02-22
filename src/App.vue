@@ -46,11 +46,20 @@ const app = {
   beforeUnmount() {
     window.removeEventListener("keydown", this.handleShortcut);
   },
+  watch: {
+    watchFocus(value) {
+      if (value) {
+        this.$refs.searchInput.focus();
+      } else {
+        this.$refs.searchInput.blur();
+      }
+    }
+  },
   methods: {
     handleShortcut(event) {
       if (event.ctrlKey && event.code === "Space") {
         event.preventDefault(); // Prevent default browser behavior
-        this.$refs.searchInput.focus(); // Focus the input
+        this.isFocused = !this.isFocused;
       }
     },
     processFirstResult() {
