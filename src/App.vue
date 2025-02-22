@@ -68,8 +68,7 @@ const app = {
       }
     },
     selectScript(script) {
-      this.selectedFormatter = script.id
-      this.$refs.searchInput.blur();
+      this.selectedFormatter = script.id;
       this.searchQuery = "";
       this.isFocused = false;
     },
@@ -80,13 +79,12 @@ export default app;
 
 <template>
   <div class="search-container">
-    <input ref="searchInput" v-model="searchQuery" @focus="isFocused = true"
-           @blur="isFocused = false"
+    <input ref="searchInput" v-model="searchQuery" @focus="isFocused = true" @blur="isFocused = false"
            placeholder="Press Ctrl + Space to start" class="search-box"
            @keydown.enter="processFirstResult"/>
     <ul v-if="isFocused && filteredScripts.length" class="results-list">
       <li v-for="script in filteredScripts" :key="script.id" class="result-item"
-          @click="selectScript(script)">
+          @mousedown="selectScript(script)">
         {{ script.name }}
       </li>
     </ul>
