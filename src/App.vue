@@ -12,7 +12,7 @@ const app = {
   },
   data() {
     return {
-      isFocused: false,
+      isFocused: true,
       selectedFormatter: null,
       searchQuery: "",
       scripts: [{
@@ -47,11 +47,6 @@ const app = {
     window.removeEventListener("keydown", this.handleShortcut);
   },
   methods: {
-    hideWithDelay() {
-      setTimeout(() => {
-        this.isFocused = false;
-      }, 300); // Small delay to allow clicking items
-    },
     handleShortcut(event) {
       if (event.ctrlKey && event.code === "Space") {
         event.preventDefault(); // Prevent default browser behavior
@@ -67,6 +62,7 @@ const app = {
       this.selectedFormatter = script.id
       this.$refs.searchInput.blur();
       this.searchQuery = "";
+      this.isFocused = false;
     },
   }
 }
@@ -76,7 +72,7 @@ export default app;
 <template>
   <div class="search-container">
     <input ref="searchInput" v-model="searchQuery" @focus="isFocused = true"
-           @blur="hideWithDelay" placeholder="Press Ctrl + Space to start" class="search-box"
+           placeholder="Press Ctrl + Space to start" class="search-box"
            @keydown.enter="processFirstResult"/>
     <ul v-if="isFocused && filteredScripts.length" class="results-list">
       <li v-for="script in filteredScripts" :key="script.id" class="result-item"
