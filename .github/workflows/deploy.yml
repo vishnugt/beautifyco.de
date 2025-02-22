@@ -1,7 +1,7 @@
-name: Manual Vite Vue Build & Deploy
+name: Build Project
 
 on:
-  workflow_dispatch: # Runs only when manually triggered
+  workflow_dispatch:
 
 jobs:
   build:
