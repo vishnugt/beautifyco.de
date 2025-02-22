@@ -1,29 +1,8 @@
-# codebeau
+# beautifyco.de
 
-This template should help get you started developing with Vue 3 in Vite.
+Access it [beautifyco.de](https://beautifyco.de/).
 
-## Recommended IDE Setup
+Sample PR to add a formatter: [PR](https://github.com/vishnugt/beautifyco.de/commit/434ed7e2bfb7f5a3c851ebeb47eb9a7154fe8e6b)
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
+Generated static page will be stored in `deploy` branch.
