@@ -365,7 +365,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
   color: #6b7280;
   font-style: italic;
 }

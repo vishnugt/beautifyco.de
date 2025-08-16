@@ -179,12 +179,13 @@ body {
 }
 
 .results-list li {
+  text-align: left;
   padding: 12px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: 8px;
   margin-bottom: 4px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #374151;
 }
