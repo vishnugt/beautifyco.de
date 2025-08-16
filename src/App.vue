@@ -3,17 +3,21 @@
 import JsonFormatter from "./formatters/JsonFormatter.vue";
 import Base64Decoder from "./formatters/Base64Decoder.vue";
 import Base64Encoder from "./formatters/Base64Encoder.vue";
+import JwtDecoder from "./formatters/JwtDecoder.vue";
+import UuidGenerator from "./formatters/UuidGenerator.vue";
 
 const app = {
   components: {
     JsonFormatter,
     Base64Decoder,
-    Base64Encoder
+    Base64Encoder,
+    JwtDecoder,
+    UuidGenerator
   },
   data() {
     return {
-      isFocused: true,
-      selectedFormatter: null,
+      isFocused: false,
+      selectedFormatter: "JsonFormatter",
       searchQuery: "",
       scripts: [{
         id: "Base64Decoder",
@@ -28,16 +32,33 @@ const app = {
           name: "JSON Formatter"
         },
         {
-          id: "jwtDecoder",
+          id: "JwtDecoder",
           name: "JWT Decoder"
+        },
+        {
+          id: "UuidGenerator",
+          name: "UUID Generator"
         }]
     }
   },
   computed: {
     filteredScripts() {
-      return this.scripts.filter(script => {
-        return script.id.toLowerCase().includes(this.searchQuery.toLowerCase());
-      });
+      return this.scripts
+        .map((script, index) => ({ ...script, originalIndex: index }))
+        .filter((script) => {
+          const searchTerm = this.searchQuery.toLowerCase();
+          const scriptNumber = (script.originalIndex + 1).toString();
+          return script.id.toLowerCase().includes(searchTerm) || 
+                 script.name.toLowerCase().includes(searchTerm) ||
+                 scriptNumber.includes(searchTerm);
+        });
+    },
+    currentScriptName() {
+      const currentScript = this.scripts.find(script => script.id === this.selectedFormatter);
+      return currentScript ? currentScript.name : "Select Tool";
+    },
+    placeholderText() {
+      return `${this.currentScriptName} (ctrl + space for other options)`;
     }
   },
   mounted() {
@@ -80,12 +101,12 @@ export default app;
 <template>
   <div class="search-container">
     <input ref="searchInput" v-model="searchQuery" @focus="isFocused = true" @blur="isFocused = false"
-           placeholder="Press Ctrl + Space to start" class="search-box"
+           :placeholder="placeholderText" class="search-box"
            @keydown.enter="processFirstResult"/>
     <ul v-if="isFocused && filteredScripts.length" class="results-list">
       <li v-for="script in filteredScripts" :key="script.id" class="result-item"
           @mousedown="selectScript(script)">
-        {{ script.name }}
+        {{ script.originalIndex + 1 }}. {{ script.name }}
       </li>
     </ul>
   </div>
@@ -97,68 +118,107 @@ export default app;
 </template>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background: #fafafa;
+  color: #374151;
+}
+
 .search-container {
   position: relative;
-  left: 20%;
-  width: 60%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 24px;
   text-align: center;
 }
 
-/* Style the input box */
 .search-box {
   width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 2px solid #e1e5e9;
+  border-radius: 10px;
   outline: none;
   box-sizing: border-box;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Style the results list */
+.search-box:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-box::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
 .results-list {
   position: absolute;
-  margin-top: 10px;
+  top: 100%;
+  margin-top: 8px;
   list-style: none;
-  padding: 10px;
-  background: #ffffff; /* White background for a clean look */
-  border: 1px solid #d1d5db; /* Light gray border */
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #e1e5e9;
   border-radius: 8px;
-  width: 100%;
+  width: 094%;
+  max-height: 280px;
   overflow-y: auto;
   box-sizing: border-box;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 100;
 }
 
-/* Style each list item */
 .results-list li {
-  padding: 12px;
+  padding: 12px 16px;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  width: 100%;
-  border-bottom: 1px solid #e5e7eb; /* Light separator */
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  margin-bottom: 4px;
   font-size: 16px;
-  color: #333; /* Darker text for readability */
+  font-weight: 500;
+  color: #374151;
 }
 
-/* Last item should not have a border at the bottom */
 .results-list li:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
-/* Hover effect: Darker background */
 .results-list li:hover {
-  background: #f3f4f6; /* Light gray */
-  transform: scale(1.02); /* Slightly enlarges row */
+  background: #f3f4f6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Active row styling */
-.results-list li:active,
-.results-list li.selected {
-  background: #2563eb; /* Blue highlight */
-  color: white; /* White text */
-  font-weight: bold;
+.results-list li:active {
+  background: #4f46e5;
+  color: white;
+  transform: translateY(0);
 }
 
+@media (max-width: 768px) {
+  .search-container {
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+  
+  .search-box {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .results-list {
+    max-height: 240px;
+  }
+}
 </style>
 
