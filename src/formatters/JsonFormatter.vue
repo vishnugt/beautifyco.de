@@ -248,14 +248,19 @@ export default {
       }
     },
     handleKeydown(event) {
-      // Only handle if this component is active (has focus or is maximized)
       if (event.key === 'Escape' && this.isMaximized) {
         event.preventDefault();
         this.toggleMaximize();
       }
-      if (event.ctrlKey && event.key === 'Enter' && this.isMaximized) {
+      if (event.ctrlKey && event.key === 'Enter') {
         event.preventDefault();
-        this.toggleMaximize();
+        if (this.isMaximized) {
+          // In fullscreen mode, minimize
+          this.toggleMaximize();
+        } else {
+          // In minimized mode, format JSON (same as textarea handler)
+          this.formatJson();
+        }
       }
     },
     updateIndentation() {
@@ -466,7 +471,7 @@ export default {
   border-radius: 12px;
   padding: 20px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 16px;
+  font-size: 12px;
   overflow-y: auto;
   line-height: 1.6;
   min-height: 0;
