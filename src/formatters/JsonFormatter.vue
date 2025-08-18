@@ -280,9 +280,24 @@ export default {
   max-width: 1300px;
   margin: 0 auto;
   padding: 12px;
-  height: 100vh;
+  height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Responsive layout for larger displays */
+@media (min-width: 1800px) {
+  .minimized-view {
+    max-width: 1800px;
+  }
+}
+
+@media (min-width: 2200px) {
+  .minimized-view {
+    max-width: 2000px;
+  }
 }
 
 
@@ -305,7 +320,7 @@ export default {
   gap: 16px;
   flex: 1;
   min-height: 0;
-  height: calc(100vh - 140px);
+  overflow: hidden;
 }
 
 .input-side,
