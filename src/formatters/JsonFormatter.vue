@@ -2,12 +2,36 @@
   <div class="formatter-container">
     <!-- Minimized View -->
     <div v-if="!isMaximized" class="minimized-view">
-      <div class="controls" v-if="parsedJson">
+      <div class="controls">
+        <div class="indentation-control">
+          <label>Indentation:</label>
+          <div class="toggle-group">
+            <button 
+              @click="setIndentation(2)" 
+              :class="['toggle-btn', { active: indentation === 2 }]"
+              title="2 Spaces">
+              2sp
+            </button>
+            <button 
+              @click="setIndentation(4)" 
+              :class="['toggle-btn', { active: indentation === 4 }]"
+              title="4 Spaces">
+              4sp
+            </button>
+            <button 
+              @click="setIndentation(0)" 
+              :class="['toggle-btn', { active: indentation === 0 }]"
+              title="Minified">
+              Min
+            </button>
+          </div>
+        </div>
         <div class="view-options">
-          <button @click="expandAll" class="action-btn">Expand All</button>
-          <button @click="collapseAll" class="action-btn">Collapse All</button>
-          <button @click="copyToClipboard" class="action-btn">Copy</button>
-          <button @click="toggleMaximize" class="maximize-btn">Maximize</button>
+          <button @click="formatJson" class="beautify-btn" :disabled="!jsonInput.trim()">Beautify</button>
+          <button @click="expandAll" class="action-btn" :disabled="!parsedJson">Expand All</button>
+          <button @click="collapseAll" class="action-btn" :disabled="!parsedJson">Collapse All</button>
+          <button @click="copyToClipboard" class="action-btn" :disabled="!parsedJson">Copy</button>
+          <button @click="toggleMaximize" class="maximize-btn" :disabled="!parsedJson">Maximize</button>
         </div>
       </div>
 
@@ -46,10 +70,26 @@
         <div class="fullscreen-controls">
           <div class="indentation-control">
             <label>Indentation:</label>
-            <select v-model="indentation" @change="updateIndentation">
-              <option :value="2">2 Spaces</option>
-              <option :value="4">4 Spaces</option>
-            </select>
+            <div class="toggle-group">
+              <button 
+                @click="setIndentation(2)" 
+                :class="['toggle-btn', { active: indentation === 2 }]"
+                title="2 Spaces">
+                2sp
+              </button>
+              <button 
+                @click="setIndentation(4)" 
+                :class="['toggle-btn', { active: indentation === 4 }]"
+                title="4 Spaces">
+                4sp
+              </button>
+              <button 
+                @click="setIndentation(0)" 
+                :class="['toggle-btn', { active: indentation === 0 }]"
+                title="Minified">
+                Min
+              </button>
+            </div>
           </div>
           <div class="control-group">
             <div class="view-options" v-if="parsedJson">
@@ -110,10 +150,6 @@ export default {
         this.parsedJson = JSON.parse(this.jsonInput);
         this.errorMessage = "";
         this.initializeExpandedState();
-        // Auto-maximize after successful formatting
-        if (!this.isMaximized) {
-          this.toggleMaximize();
-        }
       } catch (error) {
         this.errorMessage = "Invalid JSON format.";
         this.parsedJson = null;
@@ -170,13 +206,12 @@ export default {
       }
     },
     copyToClipboard() {
-      const jsonString = JSON.stringify(this.parsedJson, null, this.indentation);
+      const jsonString = this.indentation === 0 ? JSON.stringify(this.parsedJson) : JSON.stringify(this.parsedJson, null, this.indentation);
       navigator.clipboard.writeText(jsonString).then(() => {
         // Could add a toast notification here
       });
     },
     renderJsonHtml(data, path, indentLevel) {
-      const indent = '  '.repeat(indentLevel);
       const isExpanded = this.expandedNodes[path] !== false;
 
       if (data === null) {
@@ -196,40 +231,62 @@ export default {
 
       const openBracket = isArray ? '[' : '{';
       const closeBracket = isArray ? ']' : '}';
-      const containerType = isArray ? 'array' : 'object';
 
-      let html = `<div class="json-node">`;
-      html += `<div class="node-content" style="padding-left: ${indentLevel * 20}px;">`;
-      html += `<span class="toggle-btn" onclick="window.toggleNode('${path}')">${isExpanded ? '▼' : '▶'}</span>`;
-      html += `<span class="bracket">${isExpanded ? openBracket : openBracket + '...'}</span>`;
-
-      if (!isExpanded) {
-        html += `<span class="item-count">(${entries.length} ${isArray ? 'items' : 'keys'})</span>`;
+      // For minified view, return inline compact representation
+      if (this.indentation === 0) {
+        let compactHtml = entries.length > 0 ? `<span class="json-toggle" onclick="window.toggleNode('${path}')" data-path="${path}">${isExpanded ? '▼' : '▶'}</span>` : '';
+        compactHtml += `<span class="bracket">${openBracket}</span>`;
+        
+        if (isExpanded && entries.length > 0) {
+          entries.forEach((entry, index) => {
+            if (!isArray) {
+              compactHtml += `<span class="key">"${entry.key}":</span>`;
+            }
+            compactHtml += this.renderJsonHtml(entry.value, `${path}.${entry.key}`, indentLevel + 1);
+            if (index < entries.length - 1) {
+              compactHtml += `<span class="comma">,</span>`;
+            }
+          });
+        } else if (!isExpanded && entries.length > 0) {
+          compactHtml += `<span class="ellipsis">...</span>`;
+        }
+        
+        compactHtml += `<span class="bracket">${closeBracket}</span>`;
+        return compactHtml;
       }
 
-      html += `</div>`;
+      // Regular view - simple approach
+      if (!isExpanded) {
+        return `<div class="json-line" style="padding-left: ${indentLevel * this.indentation * 8}px;">
+          <span class="json-toggle" onclick="window.toggleNode('${path}')" data-path="${path}">▶</span>
+          <span class="bracket">${openBracket}...${closeBracket}</span>
+          <span class="item-count">(${entries.length})</span>
+        </div>`;
+      }
 
-      if (isExpanded) {
-        html += `<div class="children">`;
-        entries.forEach((entry) => {
-          html += `<div class="key-value-pair" style="padding-left: ${(indentLevel + 1) * 20}px;">`;
+      let html = `<div class="json-line" style="padding-left: ${indentLevel * this.indentation * 8}px;">`;
+      if (entries.length > 0) {
+        html += `<span class="json-toggle" onclick="window.toggleNode('${path}')" data-path="${path}">▼</span>`;
+      }
+      html += `<span class="bracket">${openBracket}</span></div>`;
+      
+      if (entries.length > 0) {
+        entries.forEach((entry, index) => {
+          html += `<div class="json-line" style="padding-left: ${(indentLevel + 1) * this.indentation * 8}px;">`;
           if (!isArray) {
-            html += `<span class="key">"${entry.key}":</span>`;
-          } else {
-            html += `<span class="array-index">${entry.key}:</span>`;
+            html += `<span class="key">"${entry.key}"</span><span class="colon">: </span>`;
           }
-          html += `<span style="margin-left: 8px;">`;
           html += this.renderJsonHtml(entry.value, `${path}.${entry.key}`, indentLevel + 1);
-          html += `</span>`;
+          if (index < entries.length - 1) {
+            html += `<span class="comma">,</span>`;
+          }
           html += `</div>`;
         });
-        html += `<div class="closing-bracket" style="padding-left: ${indentLevel * 20}px;">`;
-        html += `<span class="bracket">${closeBracket}</span>`;
-        html += `</div>`;
-        html += `</div>`;
+        html += `<div class="json-line" style="padding-left: ${indentLevel * this.indentation * 8}px;">
+          <span class="bracket">${closeBracket}</span>
+        </div>`;
       }
 
-      html += `</div>`;
       return html;
     },
     handleInputKeydown(event) {
@@ -262,6 +319,10 @@ export default {
           this.formatJson();
         }
       }
+    },
+    setIndentation(value) {
+      this.indentation = value;
+      this.updateIndentation();
     },
     updateIndentation() {
       if (this.parsedJson) {
@@ -309,19 +370,19 @@ export default {
 .controls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e1e5e9;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .side-by-side-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 50% 50%;
   gap: 16px;
   flex: 1;
   min-height: 0;
@@ -334,6 +395,9 @@ export default {
   flex: 1;
   width: 100%;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 
@@ -343,7 +407,7 @@ export default {
   padding: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 12px;
-  border: 1px solid #e1e5e9;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   resize: none;
   transition: border-color 0.2s ease;
@@ -356,23 +420,27 @@ export default {
 .json-viewer {
   flex: 1;
   width: 100%;
-  background: #fafafa;
-  border: 1px solid #e1e5e9;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 12px;
   overflow-y: auto;
+  overflow-x: auto;
   line-height: 1.3;
   min-height: 0;
+  min-width: 0;
   box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 
 .empty-state {
   flex: 1;
   width: 100%;
-  background: #f9fafb;
+  background: #f1f5f9;
   border: 1px dashed #d1d5db;
   border-radius: 6px;
   padding: 12px;
@@ -385,8 +453,8 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: left;
-  color: #6b7280;
+  justify-content: flex-start;
+  color: #64748b;
   font-style: italic;
 }
 
@@ -415,7 +483,7 @@ export default {
 
 .fullscreen-header {
   padding: 16px 24px;
-  background: #f9fafb;
+  background: #f1f5f9;
   border-bottom: 1px solid #e1e5e9;
   flex-shrink: 0;
 }
@@ -466,7 +534,7 @@ export default {
 
 .fullscreen-json-viewer {
   flex: 1;
-  background: #fafafa;
+  background: #f8fafc;
   border: 2px solid #e1e5e9;
   border-radius: 12px;
   padding: 20px;
@@ -483,10 +551,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9fafb;
+  background: #f1f5f9;
   border: 2px dashed #d1d5db;
   border-radius: 12px;
-  color: #6b7280;
+  color: #64748b;
   font-style: italic;
   font-size: 18px;
 }
@@ -495,24 +563,69 @@ export default {
 .indentation-control {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .indentation-control label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.toggle-group {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  background: white;
+  min-width: 150px;
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: none;
+  background: white;
+  color: #64748b;
+  font-size: 12px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-right: 1px solid #e2e8f0;
+  position: relative;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.toggle-btn:last-child {
+  border-right: none;
+}
+
+.toggle-btn:hover:not(.active) {
+  background: #f1f5f9;
   color: #374151;
 }
 
-.indentation-control select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  background: white;
+.toggle-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-btn.active:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 .format-btn {
-  background: #4f46e5;
+  background: #3b82f6;
   color: white;
   border: none;
   padding: 6px 14px;
@@ -532,40 +645,90 @@ export default {
 
 .view-options {
   display: flex;
+  align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-btn {
-  background: #f3f4f6;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   color: #374151;
   border: 1px solid #d1d5db;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.action-btn:hover {
-  background: #e5e7eb;
+.action-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-color: #9ca3af;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:disabled {
+  background: #f8fafc;
+  color: #9ca3af;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .maximize-btn {
-  background: #059669;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: 500;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.3);
 }
 
-.maximize-btn:hover {
-  background: #047857;
+.maximize-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.4);
+}
+
+.maximize-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.beautify-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.beautify-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+}
+
+.beautify-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .minimize-btn {
@@ -587,33 +750,46 @@ export default {
 .input-box:focus,
 .fullscreen-input-box:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* JSON Rendering Styles */
-.json-node {
-  line-height: 1.5;
+.json-line {
+  line-height: 1.4;
+  margin: 0;
+  padding: 1px 0;
 }
 
-.node-content {
-  display: flex;
-  align-items: center;
-  margin: 2px 0;
+.json-content {
+  margin: 0;
 }
 
-.toggle-btn {
+.json-line {
+  line-height: 1.4;
+  margin: 0;
+  padding: 1px 0;
+}
+
+.toggle-spacer {
+  width: 14px;
+  display: inline-block;
+}
+
+.json-toggle {
   cursor: pointer;
   user-select: none;
-  color: #6b7280;
+  color: #64748b;
   font-size: 12px;
   width: 16px;
   text-align: center;
   transition: color 0.2s ease;
+  display: inline-block;
+  margin-right: 4px;
 }
 
-.toggle-btn:hover {
-  color: #374151;
+.json-toggle:hover {
+  color: #1e293b;
 }
 
 .no-toggle {
@@ -621,7 +797,7 @@ export default {
 }
 
 .bracket {
-  color: #6b7280;
+  color: #64748b;
   font-weight: bold;
   margin-left: 4px;
 }
@@ -655,24 +831,45 @@ export default {
 }
 
 .value.object {
-  color: #6b7280;
+  color: #64748b;
 }
 
 .item-count {
-  color: #9ca3af;
+  color: #64748b;
   font-style: italic;
   font-size: 12px;
   margin-left: 8px;
 }
 
-.key-value-pair {
-  margin: 1px 0;
-  display: flex;
-  align-items: flex-start;
+.comma {
+  color: #64748b;
 }
 
-.closing-bracket {
-  margin: 2px 0;
+.colon {
+  color: #64748b;
+  margin: 0 2px;
+}
+
+.ellipsis {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Ensure consistent layout regardless of JSON content */
+.json-viewer > div {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.placeholder-text {
+  color: #64748b;
+  font-size: 13px;
+  font-style: italic;
+  padding: 6px 12px;
+  background: rgba(100, 116, 139, 0.05);
+  border-radius: 6px;
+  border: 1px dashed #cbd5e1;
 }
 
 .error-message,

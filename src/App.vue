@@ -125,9 +125,9 @@ export default app;
 html, body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  background: #fafafa;
-  color: #374151;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Inter', sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
   height: 100vh;
   overflow: hidden;
 }
@@ -144,7 +144,7 @@ html, body {
   width: 100%;
   padding: 12px 16px;
   font-size: 15px;
-  border: 2px solid #e1e5e9;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   outline: none;
   box-sizing: border-box;
@@ -154,12 +154,12 @@ html, body {
 }
 
 .search-box:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .search-box::placeholder {
-  color: #9ca3af;
+  color: #64748b;
   font-weight: 400;
 }
 
@@ -170,9 +170,9 @@ html, body {
   list-style: none;
   padding: 8px;
   background: #ffffff;
-  border: 1px solid #e1e5e9;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  width: 094%;
+  width: 94%;
   max-height: 280px;
   overflow-y: auto;
   box-sizing: border-box;
@@ -189,7 +189,7 @@ html, body {
   margin-bottom: 4px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: #1e293b;
 }
 
 .results-list li:last-child {
@@ -197,14 +197,14 @@ html, body {
 }
 
 .results-list li:hover {
-  background: #f3f4f6;
+  background: #f1f5f9;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .results-list li:active {
-  background: #4f46e5;
-  color: white;
+  background: #3b82f6;
+  color: #ffffff;
   transform: translateY(0);
 }
 
