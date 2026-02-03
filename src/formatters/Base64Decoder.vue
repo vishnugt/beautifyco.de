@@ -111,9 +111,9 @@ export default {
   margin-bottom: 12px;
   flex-wrap: wrap;
   padding: 12px;
-  background: #f9fafb;
+  background: #f1f5f9;
   border-radius: 8px;
-  border: 1px solid #e1e5e9;
+  border: 1px solid #e2e8f0;
 }
 
 .side-by-side-layout {
@@ -140,7 +140,7 @@ export default {
   padding: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 12px;
-  border: 1px solid #e1e5e9;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   resize: none;
   transition: border-color 0.2s ease;
@@ -152,15 +152,15 @@ export default {
 
 .input-box:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .output-box {
   flex: 1;
   width: 100%;
-  background: #fafafa;
-  border: 1px solid #e1e5e9;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -168,21 +168,21 @@ export default {
   line-height: 1.3;
   min-height: 0;
   resize: none;
-  color: #374151;
+  color: #1e293b;
   transition: border-color 0.2s ease;
   box-sizing: border-box;
 }
 
 .output-box:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .empty-state {
   flex: 1;
   width: 100%;
-  background: #f9fafb;
+  background: #f1f5f9;
   border: 1px dashed #d1d5db;
   border-radius: 6px;
   padding: 12px;
@@ -191,7 +191,7 @@ export default {
   line-height: 1.3;
   min-height: 0;
   resize: none;
-  color: #6b7280;
+  color: #64748b;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -216,7 +216,7 @@ export default {
 }
 
 .decode-btn {
-  background: #4f46e5;
+  background: #3b82f6;
   color: white;
   border: none;
   padding: 6px 14px;
@@ -236,7 +236,7 @@ export default {
 
 .action-btn {
   background: #f3f4f6;
-  color: #374151;
+  color: #1e293b;
   border: 1px solid #d1d5db;
   padding: 5px 10px;
   border-radius: 4px;
